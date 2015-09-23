@@ -91,7 +91,8 @@ void MipsCPU::run(){
 			printReg();
 		}
 		MMU.print();
-		c = 'r';// c = getch();
+		c = 'r';
+		// c = getch();
 	}//end_for
 }
 void MipsCPU::printReg(){
