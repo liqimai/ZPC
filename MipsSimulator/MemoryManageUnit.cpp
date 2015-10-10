@@ -2,24 +2,24 @@
 // #include "stdio.h"
 using namespace std;
 int MemoryManageUnit::lw(int adr)   //Big_Endian
-    {
-        return ((int)memory[adr]<<16)|((int)memory[adr+1]&0xFFFF); 
-    }
+{
+    return ((int)memory[adr]<<16)|((int)memory[adr+1]&0xFFFF); 
+}
 void MemoryManageUnit::sw(int adr, int dat)
-    {
-        memory[adr+0]=(short)(dat>>16);
-        memory[adr+1]=(short)(dat&0xFFFF);
-    }
+{
+    memory[adr+0]=(short)(dat>>16);
+    memory[adr+1]=(short)(dat&0xFFFF);
+}
 int MemoryManageUnit::lh(int adr)
-    {
-        return memory[adr];
-    }
+{
+    return memory[adr];
+}
 void MemoryManageUnit::sh(int adr, int dat)
-    {
-        memory[adr]=(short)(dat&0xFFFF);
-        if(adr>=CRTadr)
-            refresh=true;
-    }
+{
+    memory[adr]=(short)(dat&0xFFFF);
+    if(adr>=CRTadr)
+        refresh=true;
+}
 void MemoryManageUnit::print(){
     QueryPerformanceCounter(&stop_time);
     double now = ((double)(stop_time.QuadPart-start_time.QuadPart))/frequency.QuadPart;
@@ -43,7 +43,8 @@ void MemoryManageUnit::print(){
                 gbk_buf[2*i+1] = ' ';
             }
         }
-        WriteConsoleOutputCharacter(hOut, gbk_buf, 2*WIDTH*HEIGHT, coord, NULL);
+        unsigned long count = 0;
+        WriteConsoleOutputCharacter(hOut, gbk_buf, 2*WIDTH*HEIGHT, coord, &count);
         // printf("%c%c%c%c\n", gbk_buf[0], gbk_buf[1], gbk_buf[2], gbk_buf[3]);
         delete[] gbk_buf;
         time = now;

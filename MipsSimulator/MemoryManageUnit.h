@@ -12,7 +12,7 @@ public:
 		QueryPerformanceFrequency(&frequency);/*获取CPU内部时钟频率*/
 		for (int i = CRTadr; i < size; ++i)
 		{
-			memory[i]=0x20;
+			memory[i]=' ';
 		}
 	};
 	~MemoryManageUnit(){
