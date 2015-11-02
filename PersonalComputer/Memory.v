@@ -42,8 +42,8 @@ assign dinB = sh ? data[15:0] : (adrA[0]? data[31:16] : data[15:0]);
 assign outA = lh ? (adrA[0]? { {16{doutBA[15]}} ,doutBA} : { {16{doutAA[15]}}, doutAA}) : 
                    (adrA[0]? {doutBA,doutAA} : {doutAA,doutBA});
 
-assign addrAB = adrB[11:1];
-assign addrBB = adrB[11:1];
+assign addrAB = adrB[14:1];
+assign addrBB = adrB[14:1];
 assign outB = adrB[0]? doutBB : doutAB;
 BankA banka (
 	.clka(clk),

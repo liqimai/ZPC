@@ -21,32 +21,78 @@
 module MemoryManagerUnit(
 input clk,	//very slow clock
 input clk_50M,
-input[14:0] addr,
-input we,
-input sh,
-input lh,
-input[31:0] writeData,
+input[14:0] MemAddr,
+input MemWrite,
+input SaveHalf,
+input LoadHalf,
+input[31:0] MemWriteData,
 input rst_n,
+input MemRead,
 output[31:0] readData,
+output reg MemOK,
 
 output hsync, //行同步信号
 output vsync, //场同步信号
 output vga_r,
 output vga_g,
-output vga_b,
-output[15:0] ExtraOut
+output vga_b
     );
-	 
+	 /*
+reg clk;
+reg clk_50M;
+initial begin 
+	clk = 0;
+	clk_50M = 0;
+end
+always#10 begin
+	clk_50M = ~clk_50M;
+end
+always#10 begin
+	clk = ~clk;
+end
+*/
 parameter width = 40;
 parameter height = 25;
-parameter screenBase = 12'hc00;
-reg oldClk;
-reg oldwe;
-always @(posedge clk_50M)begin
-	oldClk <= clk;
-	oldwe <= we;
+parameter screenBase = 14'h3000;
+
+reg[14:0] addr;
+reg we;
+reg sh;
+reg lh;
+reg[31:0] writeData;
+reg[1:0] state;
+initial begin
+	addr <= 0;
+	we <= 0;
+	sh <= 0;
+	lh <= 0;
+	writeData <= 0;
+	state <= 0;
 end
 
+always@(posedge clk) begin
+	if(state == 0) begin
+		if(MemRead | MemWrite) begin
+			state <= 1;
+			addr <= MemAddr;
+			we <= MemWrite;
+			sh <= SaveHalf;
+			lh <= LoadHalf;
+			writeData <= MemWriteData;
+		end
+		else begin
+			state <= 0;
+		end
+	end
+	else if(state == 1) begin
+		state <= 2;
+		MemOK <= 1;
+	end
+	else if(state == 2) begin
+		state <= 0;
+		MemOK <= 0;
+	end
+end
 
 wire[14:0] ZBadr;
 wire[15:0] outB;
@@ -76,8 +122,7 @@ vga_dis vga (
     .vsync(vsync), 
     .vga_r(vga_r), 
     .vga_g(vga_g), 
-    .vga_b(vga_b),
-	 .ExtraOut(ExtraOut)
+    .vga_b(vga_b)
     );
 	 
 wire[14:0] offset;

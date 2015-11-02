@@ -20,9 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 module ZBziku(
     input[11:0] addra,
-    output[15:0] douta,
-	 
-	 output[15:0] ExtraOut
+    output[15:0] douta
     );
 reg[15:0] regs[0:4095];
 
@@ -31,6 +29,5 @@ initial begin
 end
 
 assign douta = regs[addra];
-assign ExtraOut = regs[16];
 
 endmodule

@@ -10,15 +10,16 @@ output hsync, //行同步信号
 output vsync, //场同步信号
 output vga_r,
 output vga_g,
-output vga_b,
-
-output[15:0] ExtraOut
+output vga_b
 );
 
 //--------------------------------------------------
 reg[10:0] x_cnt; //行坐标
 reg[9:0] y_cnt; //列坐标
-
+initial begin
+	x_cnt <= 0;
+	y_cnt <= 0;
+end
 always @ (posedge clk or negedge rst_n)
 if(!rst_n) x_cnt <= 11'd0;
 else if(x_cnt == 11'd1039) x_cnt <= 11'd0;
@@ -41,7 +42,10 @@ assign ypos = y_cnt-10'd131;//31
 
 //--------------------------------------------------
 reg hsync_r,vsync_r; //同步信号产生
-
+initial begin
+	hsync_r <= 1;
+	vsync_r <= 1;
+end
 always @ (posedge clk or negedge rst_n)
 	if(!rst_n) 
 		hsync_r <= 1'b1;
@@ -92,8 +96,7 @@ wire[7:0] adr;
 assign adr = (|ZBcode[15:8])? 8'h1 : ZBcode[7:0];
 ZBziku ziku(
 	.addra({adr[7:0],ypos[3:0]}),//[11:0]
-	.douta(bit16),//[15:0]
-	.ExtraOut(ExtraOut)
+	.douta(bit16)//[15:0]
 );
 /*
 wire grid;

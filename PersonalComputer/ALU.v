@@ -26,14 +26,13 @@ input[5:0] Func,
 output[31:0] result,
 output ZF
     );
-//AluControl
-wire[2:0] operation;
-AluControl aluControl(ALUop,Func,operation);
 
-//AdderAndSubber64
+//adition or subtraction
 wire AddOrSub,SF,OF;
 wire[63:0] AddOrSubResult;
-assign AddOrSub = operation[2];
+assign AddOrSub = 
+	(ALUop[1]==0) & ALUop[0] |
+	(ALUop[1]==1) & Func[1];
 AdderAndSubber64 adder64 (
     .A({ {32{A[31]}}, A}), 
     .B({ {32{B[31]}}, B}), 
@@ -41,16 +40,37 @@ AdderAndSubber64 adder64 (
     .result(AddOrSubResult), 
     .OF(OF), 
     .SF(SF), 
-    .ZF(ZF)/*, 
-    .CF(CF), 
+    .ZF(ZF), 
+    .CF(CF)/*, 
     .PF(PF)*/
     );
+	 
+//rotation
+wire[31:0] RotatorOut;
+Rotator rotator (
+    .RotatorIn(B), 
+    .RotatorBitNum(A[4:0]), 
+    .RotatorOp(Func[1:0]), 
+    .RotatorOut(RotatorOut)
+    );
+	 
+//mul
+wire[31:0] mulResult;
+assign mulResult = A*B;
+
+
 assign result = 
-    (operation[1:0]==2'b10)? AddOrSubResult[31:0]:(//add,sub
-        (operation[2:0]==3'b000)? A&B : (    //and
-            (operation[2:0]==3'b001)? A|B :( //or
-                (operation[2:0]==3'b111)? {31'b0,SF^OF} : 0  //slt,default
-            )
-        )
-    ) ;
+	{32{ALUop[1]==0}} & AddOrSubResult |
+	{32{ALUop[1]==1}} & (
+		{32{Func[5:3]==3'b000}} & RotatorOut | // sll srl sra sllv srlv srav
+		{32{Func[5:2]==4'b1000}} & AddOrSubResult | //sub or and
+		{32{Func[5:0]==6'b100100}} & (A & B) |//and
+		{32{Func[5:0]==6'b100101}} & (A | B) |//or
+		{32{Func[5:0]==6'b100110}} & (A ^ B) |//xor
+		{32{Func[5:0]==6'b100111}} & ~(A | B) |//nor
+		{32{Func[5:0]==6'b101010}} & {31'h0,SF^OF} |//slt
+		{32{Func[5:0]==6'b101011}} & {31'h0,~CF} |//sltu
+		{32{Func[5:0]==6'b111111}} & mulResult
+	);
+	
 endmodule

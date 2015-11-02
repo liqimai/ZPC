@@ -39,11 +39,13 @@ output[3:0] lcd_d,
 output flash_ce
     );
 wire clk;
+assign clk = clk_50M;
+/*
 pbdebounce pb1 (
     .clk(clk_50M), 
     .button(btn), 
     .pbreg(clk)
-    );
+    );*/
 	 
 //RegNumControl
 reg[4:0] RegNum;
@@ -58,7 +60,7 @@ end
 	 
 //MCC
 wire[31:0] RegData,ProgramCounter,IR;
-wire[15:0] ExtraOut;
+wire[31:0] ExtraOut;
 MultiCycleCpu MMC (
     .clk(clk), 
     .clk_50M(clk_50M), 
@@ -80,7 +82,7 @@ wire[127:0] num128;
 assign num128 = {
 	ProgramCounter | {3'h0,RegNum,24'h0}, 
 	RegData, 
-	{16'h0,ExtraOut}, 
+	ExtraOut, 
 	IR
 	};
 LCD_dis lcd (

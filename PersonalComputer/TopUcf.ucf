@@ -1,7 +1,7 @@
-NET "btn" LOC = "D18";
+NET "btn" LOC = "L13";
 NET "clk_50M" LOC= "C9";
 NET "rst_n" LOC= "H18";
-NET "RegNumPlus" LOC="H13";
+NET "RegNumPlus" LOC="L14";
 
 //VGA
 NET "hsync" LOC= "F15";
