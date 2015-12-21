@@ -1,4 +1,4 @@
-NET "btn" LOC = "L13";
+//NET "btn" LOC = "L13";
 NET "clk_50M" LOC= "C9";
 NET "rst_n" LOC= "H18";
 NET "RegNumPlus" LOC="L14";
@@ -19,3 +19,12 @@ NET "lcd_d<3>" LOC = "M15";// | IOSTANDARD = LVTTL | DRIVE = 2 | SLEW = SLOW ;
 NET "lcd_e" LOC = "M18";// | IOSTANDARD = LVTTL | DRIVE = 2 | SLEW = SLOW ;
 NET "lcd_rs" LOC = "L18";// | IOSTANDARD = LVTTL | DRIVE = 2 | SLEW = SLOW ;
 NET "lcd_rw" LOC = "L17";// | IOSTANDARD = LVTTL | DRIVE = 2 | SLEW = SLOW ;
+
+//keyboard
+NET "PS2C" LOC = "G14";// | IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = SLOW ;
+NET "PS2D" LOC = "G13";// | IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = SLOW ;
+NET "PS2C" CLOCK_DEDICATED_ROUTE = FALSE;
+
+//Serial Port
+NET "RxD" LOC = "R7"; //| IOSTANDARD = LVTTL ;
+NET "TxD" LOC = "M14"; //| IOSTANDARD = LVTTL | DRIVE = 8 | SLEW = SLOW ;

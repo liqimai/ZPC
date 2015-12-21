@@ -20,21 +20,32 @@
 //////////////////////////////////////////////////////////////////////////////////
 module MultiCycleCpu(
 input clk,
-input clk_50M,
-input rst_n,
-
-//extra
+//input clk_50M,
+input MemOK,
+input[31:0] MemReadData,
+input OutINTE,
+input[31:0] OutCause,
+     //output
+output[31:0] MemAddr,
+output MemWrite,
+output MemRead,
+output SaveHalf,
+output LoadHalf, 
+output[31:0] MemWriteData,
+output InteAccept,
+     //for debug
 input[4:0] RegNum,
 output[31:0] RegData,
 output[31:0] ProgramCounter,
 output[31:0] ExtraOut,
-output reg[31:0] IR,
+output reg[31:0] IR/*,
 
+input rst_n,
 output hsync, //行同步信号
 output vsync, //场同步信号
 output vga_r,
 output vga_g,
-output vga_b
+output vga_b*/
     );
 
 /*
@@ -43,29 +54,30 @@ reg clk_50M;
 reg rst_n;
 reg[4:0] RegNum;
 initial begin
-	// Initialize Inputs
-	RegNum = 8;
-	rst_n = 1;
-	clk = 0;
-	clk_50M = 0;
-	clk = 0;
-	// Wait 100 ns for global reset to finish
-	#100;
+    // Initialize Inputs
+    RegNum = 8;
+    rst_n = 1;
+    clk = 0;
+    clk_50M = 0;
+    clk = 0;
+    // Wait 100 ns for global reset to finish
+    #100;
        
-	// Add stimulus here
+    // Add stimulus here
 end
 
 always#10 begin
-	clk_50M = ~clk_50M;
+    clk_50M = ~clk_50M;
 end
 always#10 begin
-	clk = ~clk;
+    clk = ~clk;
 end
 */
 //PC
 reg[31:0] PC;
 initial begin
-	PC <=0;
+    PC <=0;
+    IR <=0;
 end
 
 //IR
@@ -85,17 +97,19 @@ wire
 PCWrite,
 PCWriteCond,
 IorD,
-MemRead,
-MemWrite,
 IRWrite,
 RegWrite,
-SaveHalf,
-LoadHalf,
 C0Write,
 CauseSource,
 SyscallInte,
+IsBne;
+/*
+MemRead,
+MemWrite,
+SaveHalf,
+LoadHalf,
 MemOK;
-
+*/
 wire[1:0]
 RegDst, 
 ALUop,  
@@ -116,7 +130,7 @@ ControlUnit cu (
     .func(func), 
     .RS(RS), 
     .MemOK(MemOK), 
-	 .C0State(C0State),
+     .C0State(C0State),
     .MemRead(MemRead), 
     .PCWrite(PCWrite), 
     .PCWriteCond(PCWriteCond), 
@@ -138,26 +152,29 @@ ControlUnit cu (
     .C0Dst(C0Dst), 
     .C0Src(C0Src), 
     .CauseSource(CauseSource), 
-    .SyscallInte(SyscallInte)
+    .SyscallInte(SyscallInte),
+	 .IsBne(IsBne)
     );
 assign ProgramCounter = {10'b0,CUState[5:0],PC[15:0]};
 
 //MMU
+/*
 wire[31:0] MemReadData; 
-wire[31:0] memWdata;
-wire[31:0] addr;
+wire[31:0] MemWriteData;
+wire[31:0] MemAddr;
 MemoryManagerUnit MMU (
     .clk(clk), 
     .clk_50M(clk_50M), 
-    .MemAddr(addr[14:0]), 
+    .MemAddr(MemAddr[14:0]), 
     .MemWrite(MemWrite), 
+    .MemRead(MemRead), 
     .SaveHalf(SaveHalf), 
     .LoadHalf(LoadHalf), 
-    .MemWriteData(memWdata), 
+    .MemWriteData(MemWriteData), 
     .rst_n(rst_n), 
-    .MemRead(MemRead), 
-    .readData(MemReadData), 
+    .MemReadData(MemReadData), 
     .MemOK(MemOK), 
+     
     .hsync(hsync), 
     .vsync(vsync), 
     .vga_r(vga_r), 
@@ -165,17 +182,17 @@ MemoryManagerUnit MMU (
     .vga_b(vga_b)
     );
 always @(posedge clk) begin
-	if(IRWrite) begin
-		IR <= MemReadData;
-	end
-end
+    if(IRWrite) begin
+        IR <= MemReadData;
+    end
+end*/
 
 //Register File
 wire[4:0] WR;
 wire[31:0] regWdata,Rdata1,Rdata2;
 assign WR = {5{(RegDst==2'b00)}} & RT |
             {5{(RegDst==2'b01)}} & RD |
-				{5{(RegDst==2'b10)}} & 5'd31;
+                {5{(RegDst==2'b10)}} & 5'd31;
 RegisterFile regFile (
     .clk(clk), 
     .R1(RS), 
@@ -191,8 +208,8 @@ RegisterFile regFile (
 reg[31:0] A;
 reg[31:0] B;
 always @(posedge clk) begin
-	A <= Rdata1;
-	B <= Rdata2;
+    A <= Rdata1;
+    B <= Rdata2;
 end
 
 //ALU
@@ -202,14 +219,14 @@ assign SignExtendedImmediateNum = { {16{IR[15]}}, IR[15:0]};
 assign UnsignExtendedImmediateNum = { 16'h0, IR[15:0]};
 assign offset32 = {SignExtendedImmediateNum[30:0],1'b0};
 assign srcA =  {32{(ALUSrcA == 2'b00)}} & PC    |
-					{32{(ALUSrcA == 2'b01)}} & A     |
-					{32{(ALUSrcA == 2'b10)}} & {27'h0,SFT};
-					
+                    {32{(ALUSrcA == 2'b01)}} & A     |
+                    {32{(ALUSrcA == 2'b10)}} & {27'h0,SFT};
+                    
 assign srcB =  {32{(ALUSrcB == 3'b000)}} & B     |
-					{32{(ALUSrcB == 3'b001)}} & 32'h2 |
-					{32{(ALUSrcB == 3'b010)}} & SignExtendedImmediateNum     |
-					{32{(ALUSrcB == 3'b011)}} & offset32 |
-					{32{(ALUSrcB == 3'b100)}} & UnsignExtendedImmediateNum;
+                    {32{(ALUSrcB == 3'b001)}} & 32'h2 |
+                    {32{(ALUSrcB == 3'b010)}} & SignExtendedImmediateNum     |
+                    {32{(ALUSrcB == 3'b011)}} & offset32 |
+                    {32{(ALUSrcB == 3'b100)}} & UnsignExtendedImmediateNum;
 ALU alu (
     .A(srcA), 
     .B(srcB), 
@@ -220,7 +237,7 @@ ALU alu (
     );
 reg[31:0] ALUout;
 always @(posedge clk) begin 
-	ALUout <= result;
+    ALUout <= result;
 end
 
 //Coprocessor0
@@ -228,10 +245,7 @@ wire[4:0] C0adr;
 wire[31:0] C0Wdata;
 wire[31:0] InteCause;
 wire Interrupt;
-wire InteAccept;
 wire[31:0] C0Data;
-wire[31:0] OutCause;
-wire OutINTE;
 Coprocessor0 c0 (
     .clk(clk), 
     .C0adr(C0adr), 
@@ -243,66 +257,69 @@ Coprocessor0 c0 (
     .C0State(C0State), 
     .C0Data(C0Data)
     );
-assign OutCause = 32'hFFFFFFFF;
 assign InteCause = CauseSource ? 32'h0 : OutCause;
 assign C0adr = 
-				{5{C0Dst == 2'b00}} & RD |
-				{5{C0Dst == 2'b01}} & 5'b00000 |
-				{5{C0Dst == 2'b10}} & 5'b00010 |
-				{5{C0Dst == 2'b11}} & 5'b00001 ;
+                {5{C0Dst == 2'b00}} & RD |
+                {5{C0Dst == 2'b01}} & 5'b00000 |
+                {5{C0Dst == 2'b10}} & 5'b00010 |
+                {5{C0Dst == 2'b11}} & 5'b00001 ;
 assign C0Wdata = 
-				{32{C0Src == 3'b000}} & B |
-				{32{C0Src == 3'b001}} & PC |
-				{32{C0Src == 3'b010}} & (C0Data & 32'hFFFFFFFE) |
-				{32{C0Src == 3'b011}} & 32'h0 |
-				{32{C0Src == 3'b100}} & (C0Data | 32'h1) ;
-assign OutINTE = 0;
+                {32{C0Src == 3'b000}} & B |
+                {32{C0Src == 3'b001}} & PC |
+                {32{C0Src == 3'b010}} & (C0Data & 32'hFFFFFFFE) |
+                {32{C0Src == 3'b011}} & 32'h0 |
+                {32{C0Src == 3'b100}} & (C0Data | 32'h1) ;
 assign Interrupt = SyscallInte | OutINTE;
-assign ExtraOut = C0Data;
-	 
+assign ExtraOut = {16'h0,3'b0,MemWrite,3'b0,MemRead,3'b0,SaveHalf,3'b0,LoadHalf};
+     
 //circuit
-assign addr = IorD? ALUout : PC;
-assign memWdata = B;
+always @(posedge clk) begin
+    if(IRWrite) begin
+        IR <= MemReadData;
+    end
+end
+assign MemAddr = IorD? ALUout : PC;
+assign MemWriteData = B;
 assign regWdata = {32{(WriteData == 3'b000)}} & ALUout |
-					   {32{(WriteData == 3'b001)}} & MemReadData |
-					   {32{(WriteData == 3'b010)}} & PC |
-						{32{(WriteData == 3'b011)}} & C0Data |
-						{32{(WriteData == 3'b100)}} & {IR[15:0], 16'h0};
+                       {32{(WriteData == 3'b001)}} & MemReadData |
+                       {32{(WriteData == 3'b010)}} & PC |
+                        {32{(WriteData == 3'b011)}} & C0Data |
+                        {32{(WriteData == 3'b100)}} & {IR[15:0], 16'h0};
 always @(posedge clk) begin 
-	if( PCWrite | (PCWriteCond & ZF)) begin
-		case(PCSource)
-			3'b000: begin
-				PC <= result;
-			end
-			3'b001: begin
-				PC <= ALUout;
-			end
-			3'b010: begin
-				PC <= {PC[31:27],IR[25:0],1'b0};
-			end
-			3'b011: begin
-				PC <= A;
-			end
-			3'b100: begin
-				PC <= C0Data;
-			end
-			3'b101: begin
-				PC <= 32'h4F00;
-			end
-		endcase
-	end
+    if( PCWrite | (PCWriteCond & (ZF^IsBne))) begin
+        case(PCSource)
+            3'b000: begin
+                PC <= result;
+            end
+            3'b001: begin
+                PC <= ALUout;
+            end
+            3'b010: begin
+                PC <= {PC[31:27],IR[25:0],1'b0};
+            end
+            3'b011: begin
+                PC <= A;
+            end
+            3'b100: begin
+                PC <= C0Data;
+            end
+            3'b101: begin
+                PC <= 32'h4F00;
+            end
+        endcase
+    end
 end
 
 /*
 initial begin
-	clk = 0;
-	clk_50M = 0;
-	rst_n = 1;
-	RegNum = 19;
+    clk = 0;
+    clk_50M = 0;
+    rst_n = 1;
+    RegNum = 19;
 end
 always#10
-	clk_50M = ~clk_50M;
+    clk_50M = ~clk_50M;
 always#50
-	clk = ~clk;
-	*/
+    clk = ~clk;
+    */
 endmodule

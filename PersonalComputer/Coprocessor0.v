@@ -26,7 +26,7 @@ end
 assign C0State = State;
 assign InteAccept = 
 				(C0Write && (C0adr==Stateadr)) && Interrupt && ~C0Wdata[1] || 
-				~(C0Write && (C0adr==Stateadr)) && ~(C0adr==Cause) && Interrupt && ~State[1];
+				~(C0Write && (C0adr==Stateadr)) && ~(C0Write && (C0adr==Causeadr)) && Interrupt && ~State[1];
 
 always@(posedge clk) begin
 	if(C0Write) begin

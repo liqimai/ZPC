@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 module Top(
 input clk_50M,
-input btn,
+//input btn,
 input rst_n,
 input RegNumPlus,
 
@@ -36,7 +36,15 @@ output lcd_rs,
 output lcd_rw,
 output lcd_e,
 output[3:0] lcd_d,
-output flash_ce
+output flash_ce,
+
+//keyboard
+input PS2C, 
+input PS2D,
+
+//Serial Port
+input RxD,
+output TxD
     );
 wire clk;
 assign clk = clk_50M;
@@ -58,25 +66,36 @@ always@(posedge rnp) begin
 	RegNum <= RegNum + 1;
 end
 	 
-//MCC
+//MainBoard
 wire[31:0] RegData,ProgramCounter,IR;
 wire[31:0] ExtraOut;
-MultiCycleCpu MMC (
+MainBoard mb(
+    //clk
     .clk(clk), 
     .clk_50M(clk_50M), 
-    .rst_n(rst_n), 
+	 
+	 //for debug
     .RegNum(RegNum), 
     .RegData(RegData), 
     .ProgramCounter(ProgramCounter), 
 	 .IR(IR),
+	 .ExtraOut(ExtraOut),
+	 
+	 //vag
     .hsync(hsync), 
     .vsync(vsync), 
     .vga_r(vga_r), 
     .vga_g(vga_g), 
-    .vga_b(vga_b),
-	 .ExtraOut(ExtraOut)
+    .vga_b(vga_b), 
+	 
+	 //keyboard
+    .PS2C(PS2C), 
+    .PS2D(PS2D),
+	 
+	 //Serial Port
+    .RxD(RxD),
+    .TxD(TxD)
     );
-
 //LCD_Display
 wire[127:0] num128;
 assign num128 = {
@@ -88,7 +107,7 @@ assign num128 = {
 LCD_dis lcd (
     .clk(clk_50M), 
     .num(num128), 
-    .reset(~rst_n), 
+    .reset(rst_n), 
     .lcd_rs(lcd_rs), 
     .lcd_rw(lcd_rw), 
     .lcd_e(lcd_e), 

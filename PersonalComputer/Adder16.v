@@ -31,22 +31,23 @@ module Adder16(
     output PF,
     output ZF
     );
-wire[15:0] p,g;
+wire[15:0] _p_,_g_;
 wire[4:0] C;
-wire[3:0] sf,cf,of,pf,zf;
+wire[3:0] _sf_,_cf_,_of_,_pf_,_zf_;
 
-pg_to_PG pgtoPG(p,g,P,G);
+pg_to_PG pgtoPG(_p_,_g_,P,G);
 ParallelCarry4 PC(P,G,C0,C);
 
-Adder4	a1(A[3:0],B[3:0],C[0],p[3:0],g[3:0],sum[3:0],sf[0],cf[0],of[0],pf[0],zf[0]),
-	a2(A[7:4],B[7:4],C[1],p[7:4],g[7:4],sum[7:4],sf[1],cf[1],of[1],pf[1],zf[1]),
-	a3(A[11:8],B[11:8],C[2],p[11:8],g[11:8],sum[11:8],sf[2],cf[2],of[2],pf[2],zf[2]),
-	a4(A[15:12],B[15:12],C[3],p[15:12],g[15:12],sum[15:12],sf[3],cf[3],of[3],pf[3],zf[3]);
+Adder4 
+    a1(A[ 3: 0],B[ 3: 0],C[0],_p_[ 3: 0],_g_[ 3: 0],sum[ 3: 0],_sf_[0],_cf_[0],_of_[0],_pf_[0],_zf_[0]),
+    a2(A[ 7: 4],B[ 7: 4],C[1],_p_[ 7: 4],_g_[ 7: 4],sum[ 7: 4],_sf_[1],_cf_[1],_of_[1],_pf_[1],_zf_[1]),
+    a3(A[11: 8],B[11: 8],C[2],_p_[11: 8],_g_[11: 8],sum[11: 8],_sf_[2],_cf_[2],_of_[2],_pf_[2],_zf_[2]),
+    a4(A[15:12],B[15:12],C[3],_p_[15:12],_g_[15:12],sum[15:12],_sf_[3],_cf_[3],_of_[3],_pf_[3],_zf_[3]);
 
-assign	SF=sf[3],
-	CF=C[4],
-	OF=of[3],
-	PF=^pf[3:0],
-	ZF= ~|(~zf[3:0]);
+assign  SF=_sf_[3],
+    CF=C[4],
+    OF=_of_[3],
+    PF=^_pf_[3:0],
+    ZF= ~|(~_zf_[3:0]);
 
 endmodule

@@ -47,7 +47,8 @@ output C0Write,
 output[1:0] C0Dst,
 output[2:0] C0Src,
 output CauseSource,
-output SyscallInte
+output SyscallInte,
+output IsBne
     );
 	 
 reg [5:0] state;
@@ -66,6 +67,7 @@ assign SYSCALL     = (opcode==6'h00 && func==6'hC);
 assign J           =(opcode==6'h02);
 assign JAL         =(opcode==6'h03);
 assign BEQ         =(opcode==6'h04);
+assign BNE         =(opcode==6'h05);
 
 assign ADDI        =(opcode==6'h08);
 assign ADDIU       =(opcode==6'h09);
@@ -158,6 +160,10 @@ always @(posedge clk) begin
 			
 			else if(ERET) begin
 				state <= 32;
+			end
+			
+			else if(BNE) begin
+				state <= 34;
 			end
 		end
 		2: begin 
@@ -273,6 +279,9 @@ always @(posedge clk) begin
 				state <= 0;
 			end
 		end
+		34: begin
+			state <= 0;
+		end
 		default: begin
 			state <= 0;
 		end
@@ -312,9 +321,10 @@ assign state30 = (state == 30);
 assign state31 = (state == 31);
 assign state32 = (state == 32);
 assign state33 = (state == 33);
+assign state34 = (state == 34);
 
 assign PCWrite = state9 | state13 | state14 | state15 | (state23 & MemOK)|state27 | state28;
-assign PCWriteCond = state8;
+assign PCWriteCond = state8 | state34;
 assign IorD = state3 | state5 | state10 | state11;
 assign MemRead = state0 | state3 | state10;
 assign MemWrite = state5 | state11;
@@ -323,9 +333,9 @@ assign WriteData[1] = state13 | state15 | state16;
 assign WriteData[0] = state4 | state16;
 assign IRWrite = state23 & MemOK;
 assign ALUop[1] = state6 | state19 | state20 | state21 | state22;
-assign ALUop[0] = state8;
+assign ALUop[0] = state8 | state34;
 assign ALUSrcA[1] = state19;
-assign ALUSrcA[0] = state2 | state6 | state8 | state20 | state21 | state22;
+assign ALUSrcA[0] = state2 | state6 | state8 | state20 | state21 | state22 | state34;
 assign ALUSrcB[2] = state21;
 assign ALUSrcB[1] = state1 | state2 | state20;
 assign ALUSrcB[0] = state1 | state23;
@@ -336,7 +346,8 @@ assign SaveHalf = state11;
 assign LoadHalf = state10;
 assign PCSource[2] = state27 | state28;
 assign PCSource[1] = state9 | state13 | state14 | state15;
-assign PCSource[0] = state8 | state14 | state15 | state27;
+assign PCSource[0] = state8 | state14 | state15 | state27 | state34;
+assign IsBne = state34;
 assign ALUFunc = 
 	{6{R}} & func |
 	{6{ADDI}}  & 6'h20 |
