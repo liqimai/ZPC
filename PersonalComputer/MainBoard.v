@@ -122,7 +122,8 @@ MultiCycleCpu MCC (
     .RegNum(RegNum), 
     .ProgramCounter(ProgramCounter), 
     .IR(IR),
-    .ExtraOut(MMCExtraOut)
+    .ExtraOut(MMCExtraOut),
+	 .RegData(RegData)
     );
 reg[31:0] MemAddr;
 reg MemWrite;
@@ -141,8 +142,7 @@ initial begin
     state <= 0;
 end
 
-assign ExtraOut = {3'h0,MemWrite,3'h0,MemRead,3'h0,SaveHalf,3'h0,LoadHalf,14'h0,state};
-assign RegData = MemAddr;
+assign ExtraOut = MemAddr;
 
 //Block Memory
 wire BlockMemChipSelect;

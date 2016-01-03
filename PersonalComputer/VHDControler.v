@@ -359,6 +359,9 @@ reg[7:0] BufferWriteData;*/
 	5: begin
 		MemOK <= 0;
 		state <= 0;
+		if(Command != 0) begin
+			ready <= 0;
+		end
 	end
 	
 	10: begin

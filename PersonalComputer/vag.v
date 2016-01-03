@@ -93,7 +93,7 @@ assign vga_b = valid ? white : 1'b0;
 wire white;
 wire[15:0] bit16;
 wire[7:0] adr;
-assign adr = (|ZBcode[15:8])? 8'h1 : ZBcode[7:0];
+assign adr = (|ZBcode[15:7])? 8'h1 : ZBcode[7:0];
 ZBziku ziku(
 	.addra({adr[7:0],ypos[3:0]}),//[11:0]
 	.douta(bit16)//[15:0]
